@@ -40,3 +40,12 @@ target_link_libraries(
   gtest_main
   gflags::gflags
   glog::glog)
+
+add_executable(bytes_to_bits_benchmark
+  BytesToBitsBenchmark.cpp)
+
+target_link_libraries(
+  bytes_to_bits_benchmark
+  velox_common_base
+  ${FOLLY_BENCHMARK}
+  Folly::folly)
