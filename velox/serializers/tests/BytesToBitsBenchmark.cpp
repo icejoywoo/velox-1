@@ -19,6 +19,7 @@
 
 namespace velox = facebook::velox;
 
+/// https://github.com/ClickHouse/ClickHouse/blob/facbd89d4867b246762d8cb82cde2691b2f90200/src/Columns/ColumnsCommon.h#L27
 /// Transform 64-byte mask to 64-bit mask
 inline uint64_t bytes64MaskToBits64Mask(const uint8_t * bytes64)
 {
