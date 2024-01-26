@@ -205,7 +205,7 @@ class VectorFuzzer {
   // The number of elements per array row is based on the size of the
   // `elements` vector and `size`, and either fixed or variable (depending on
   // `opts.containerVariableLength`).
-  ArrayVectorPtr fuzzArray(const VectorPtr& elements, vector_size_t size);
+  ArrayVectorPtr fuzzArray(const TypePtr& type, const VectorPtr& elements, vector_size_t size);
 
   // Uses `keys` and `values` as the internal elements vectors, wrapping them
   // into a MapVector of `size` rows.
@@ -218,7 +218,7 @@ class VectorFuzzer {
   // values for a particular element will be removed/skipped. In that case, this
   // method throws if the keys vector has nulls.
   MapVectorPtr
-  fuzzMap(const VectorPtr& keys, const VectorPtr& values, vector_size_t size);
+  fuzzMap(const TypePtr& type, const VectorPtr& keys, const VectorPtr& values, vector_size_t size);
 
   // Returns a "fuzzed" row vector with randomized data and nulls.
   RowVectorPtr fuzzRow(const RowTypePtr& rowType);
@@ -232,6 +232,7 @@ class VectorFuzzer {
   // Returns a RowVector based on the provided vectors, fuzzing its top-level
   // null buffer.
   RowVectorPtr fuzzRow(
+      const TypePtr& type,
       std::vector<VectorPtr>&& children,
       std::vector<std::string> childrenNames,
       vector_size_t size);

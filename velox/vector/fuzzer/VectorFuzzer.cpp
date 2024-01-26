@@ -477,7 +477,7 @@ VectorPtr VectorFuzzer::fuzzFlat(const TypePtr& type, vector_size_t size) {
     auto elements = opts_.containerHasNulls
         ? fuzzFlat(elementType, elementsLength)
         : fuzzFlatNotNull(elementType, elementsLength);
-    return fuzzArray(elements, size);
+    return fuzzArray(type, elements, size);
   }
   // Maps.
   else if (type->isMap()) {
@@ -493,7 +493,7 @@ VectorPtr VectorFuzzer::fuzzFlat(const TypePtr& type, vector_size_t size) {
         : fuzzFlat(keyType, length);
     auto values = opts_.containerHasNulls ? fuzzFlat(valueType, length)
                                           : fuzzFlatNotNull(valueType, length);
-    return fuzzMap(keys, values, size);
+    return fuzzMap(type, keys, values, size);
   }
   // Rows.
   else if (type->isRow()) {
@@ -507,7 +507,7 @@ VectorPtr VectorFuzzer::fuzzFlat(const TypePtr& type, vector_size_t size) {
                                   : fuzzFlatNotNull(childType, size));
     }
 
-    return fuzzRow(std::move(childrenVectors), rowType.names(), size);
+    return fuzzRow(type, std::move(childrenVectors), rowType.names(), size);
   } else {
     VELOX_UNREACHABLE();
   }
@@ -554,7 +554,7 @@ VectorPtr VectorFuzzer::fuzzComplex(const TypePtr& type, vector_size_t size) {
       auto elements = opts_.containerHasNulls
           ? fuzz(elementType, elementsLength)
           : fuzzNotNull(elementType, elementsLength);
-      return fuzzArray(elements, size);
+      return fuzzArray(type, elements, size);
     }
 
     case TypeKind::MAP: {
@@ -570,7 +570,7 @@ VectorPtr VectorFuzzer::fuzzComplex(const TypePtr& type, vector_size_t size) {
           : fuzz(keyType, length);
       auto values = opts_.containerHasNulls ? fuzz(valueType, length)
                                             : fuzzNotNull(valueType, length);
-      return fuzzMap(keys, values, size);
+      return fuzzMap(type, keys, values, size);
     }
 
     default:
@@ -632,13 +632,14 @@ void VectorFuzzer::fuzzOffsetsAndSizes(
 }
 
 ArrayVectorPtr VectorFuzzer::fuzzArray(
+    const TypePtr& type,
     const VectorPtr& elements,
     vector_size_t size) {
   BufferPtr offsets, sizes;
   fuzzOffsetsAndSizes(offsets, sizes, elements->size(), size);
   return std::make_shared<ArrayVector>(
       pool_,
-      ARRAY(elements->type()),
+      type,
       fuzzNulls(size),
       size,
       offsets,
@@ -687,6 +688,7 @@ VectorPtr VectorFuzzer::normalizeMapKeys(
 }
 
 MapVectorPtr VectorFuzzer::fuzzMap(
+    const TypePtr& type,
     const VectorPtr& keys,
     const VectorPtr& values,
     vector_size_t size) {
@@ -695,7 +697,7 @@ MapVectorPtr VectorFuzzer::fuzzMap(
   fuzzOffsetsAndSizes(offsets, sizes, elementsSize, size);
   return std::make_shared<MapVector>(
       pool_,
-      MAP(keys->type(), values->type()),
+      type,
       fuzzNulls(size),
       size,
       offsets,
@@ -722,6 +724,7 @@ RowVectorPtr VectorFuzzer::fuzzInputFlatRow(const RowTypePtr& rowType) {
 }
 
 RowVectorPtr VectorFuzzer::fuzzRow(
+    const TypePtr& type,
     std::vector<VectorPtr>&& children,
     std::vector<std::string> childrenNames,
     vector_size_t size) {
@@ -734,7 +737,7 @@ RowVectorPtr VectorFuzzer::fuzzRow(
 
   return std::make_shared<RowVector>(
       pool_,
-      ROW(std::move(childrenNames), std::move(types)),
+      type,
       fuzzNulls(size),
       size,
       std::move(children));
